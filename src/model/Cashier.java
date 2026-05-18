@@ -3,7 +3,7 @@ package model;
 public class Cashier extends User {
 
     public Cashier(String id, String name, String password) {
-        super(id, name, password, "Kasir");
+        super(id, name, password, "CASHIER");
     }
 
     @Override
