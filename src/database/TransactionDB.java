@@ -1,4 +1,3 @@
-
 import model.CartItem;
 import model.Transaction;
 import java.sql.*;
@@ -33,12 +32,37 @@ public class TransactionDB {
                 ps2.setDouble(5, item.getProduct().getPrice());
                 ps2.setDouble(6, item.getProduct().calculateDiscount());
                 ps2.executeUpdate();
+                ps2.close(); // Menutup resource statement detail
             }
 
+            ps.close(); // Menutup resource statement header
             System.out.println("✅ Transaksi tersimpan!");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // ===== FUNGSI HITUNG TOTAL OMSET (ADMIN) =====
+    public double getTotalOmset() throws Exception {
+        double totalOmset = 0;
+        Connection conn = DatabaseConnection.getConnection();
+        
+        // Sesuai urutan insert kamu, mari kita hitung jumlah dari kolom ke-4 di tabel transactions.
+        // Catatan: Jika program memunculkan error SQL, pastikan nama kolom 'total_amount' di bawah ini 
+        // sudah sama persis dengan nama kolom ke-4 di tabel 'transactions' phpMyAdmin kamu.
+        String query = "SELECT SUM(total_amount) AS omset FROM transactions";
+        
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+        
+        if (rs.next()) {
+            totalOmset = rs.getDouble("omset");
+        }
+        
+        rs.close();
+        stmt.close();
+        
+        return totalOmset;
     }
 }

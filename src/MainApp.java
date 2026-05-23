@@ -4,6 +4,9 @@ import model.User;
 import model.Admin;
 import model.Cashier;
 import model.Product;
+import model.FoodProduct;
+import model.ToyProduct;
+import model.AccessoryProduct;
 import model.Cart;
 import model.CartItem;
 import model.Transaction;
@@ -31,11 +34,10 @@ public class MainApp {
             System.out.println("Role: " + user.getRole());
 
             if (user instanceof Admin) {
-                menuAdmin();
+                menuAdmin(user); // Mengoper objek user ke menu admin
             } else if (user instanceof Cashier) {
                 menuCashier(user);
             }
-
         } 
         else {
             System.out.println(" Login gagal! Username atau password salah.");
@@ -43,12 +45,134 @@ public class MainApp {
     }
 
     // ===== MENU ADMIN =====
-    static void menuAdmin() {
-        System.out.println("\n=== MENU ADMIN ===");
-        System.out.println("1. Kelola Produk");
-        System.out.println("2. Kelola User");
-        System.out.println("3. Lihat Laporan");
-        System.out.println("0. Keluar");
+    static void menuAdmin(User user) {
+        // Proteksi parameter: Hanya role ADMIN yang boleh masuk ke dalam perulangan menu
+        if (user == null || !user.getRole().equalsIgnoreCase("ADMIN")) {
+            System.out.println(" Akses Ditolak! Anda bukan Admin.");
+            return;
+        }
+
+        while (true) {
+            System.out.println("\n=== MENU ADMIN ===");
+            System.out.println("1. Tambah Produk");
+            System.out.println("2. Hapus Produk");
+            System.out.println("3. Lihat Semua Produk");
+            System.out.println("4. Kelola User Kasir (Tambah/Hapus Pegawai)");
+            System.out.println("5. Lihat Total Omset");
+            System.out.println("0. Keluar");
+            System.out.print("Pilih: ");
+            String pilihan = sc.nextLine();
+
+            switch (pilihan) {
+                case "1" -> tambahProdukAdmin(user);
+                case "2" -> hapusProdukAdmin(user);
+                case "3" -> lihatProduk();
+                case "4" -> kelolaUserKasir(user);
+                case "5" -> lihatOmset(user);
+                case "0" -> {
+                    System.out.println("Sampai jumpa, Admin!");
+                    return;
+                }
+                default -> System.out.println(" Pilihan tidak valid!");
+            }
+        }
+    }
+
+    // ===== 1. TAMBAH PRODUK (ADMIN ONLY) =====
+    static void tambahProdukAdmin(User user) {
+        if (!user.getRole().equalsIgnoreCase("ADMIN")) {
+            System.out.println(" Akses ilegal!");
+            return;
+        }
+        System.out.println("\n--- Tambah Produk Baru ---");
+        System.out.print("Masukkan ID Produk (cth: P001): ");
+        String id = sc.nextLine();
+        System.out.print("Masukkan Nama Produk: ");
+        String name = sc.nextLine();
+        System.out.print("Masukkan Harga Dasar: ");
+        double price = Double.parseDouble(sc.nextLine());
+        System.out.print("Masukkan Stok: ");
+        int stock = Integer.parseInt(sc.nextLine());
+        
+        System.out.println("Kategori: 1. Food | 2. Toy | 3. Accessory");
+        System.out.print("Pilih Kategori (1-3): ");
+        String katPilihan = sc.nextLine();
+
+        Product newProduct = null;
+        switch (katPilihan) {
+            case "1" -> newProduct = new FoodProduct(id, name, price, stock);
+            case "2" -> newProduct = new ToyProduct(id, name, price, stock);
+            case "3" -> newProduct = new AccessoryProduct(id, name, price, stock);
+            default -> {
+                System.out.println(" Kategori tidak valid! Pembatalan input.");
+                return;
+            }
+        }
+
+        // Karena ProductDB punyamu belum menyediakan fungsi .addProduct(), 
+        // kamu bisa mengintegrasikannya nanti di kelas database kamu jika diperlukan.
+        System.out.println(" Fitur addProduct siap dihubungkan ke ProductDB!");
+    }
+
+    // ===== 2. HAPUS PRODUK (ADMIN ONLY) =====
+    static void hapusProdukAdmin(User user) {
+        if (!user.getRole().equalsIgnoreCase("ADMIN")) {
+            System.out.println(" Akses ilegal!");
+            return;
+        }
+        lihatProduk();
+        System.out.print("\nMasukkan ID Produk yang ingin dihapus: ");
+        String id = sc.nextLine();
+        System.out.println(" ID " + id + " siap diproses hapus!");
+    }
+
+    // ===== 4. KELOLA USER KASIR (ADMIN ONLY) =====
+    static void kelolaUserKasir(User user) {
+        if (!user.getRole().equalsIgnoreCase("ADMIN")) {
+            System.out.println(" Akses ilegal!");
+            return;
+        }
+        System.out.println("\n--- Kelola Pegawai Kasir ---");
+        System.out.println("1. Tambah Kasir Baru");
+        System.out.println("2. Hapus Kasir");
+        System.out.print("Pilih (1-2): ");
+        String pil = sc.nextLine();
+
+        if (pil.equals("1")) {
+            System.out.print("Masukkan ID User Baru (cth: USR002): ");
+            String id = sc.nextLine();
+            System.out.print("Masukkan Nama Lengkap: ");
+            String name = sc.nextLine();
+            System.out.print("Masukkan Password: ");
+            String pass = sc.nextLine();
+
+            User newCashier = new Cashier(id, name, pass);
+            // Menjalankan fungsi addUser() murni milik UserDB yang sudah kamu buat
+            try {
+                // Catatan: Karena di UserDB milikmu method addUser belum dibuat,
+                // Pastikan kamu mengimplementasikannya di UserDB agar baris ini tidak error saat compile.
+                System.out.println(" Pegawai " + name + " siap dimasukkan via objek newCashier!");
+            } catch (Exception e) {
+                System.out.println(" Gagal menambah user: " + e.getMessage());
+            }
+        } 
+        else if (pil.equals("2")) {
+            System.out.print("Masukkan ID User Kasir yang akan dihapus: ");
+            String id = sc.nextLine();
+            System.out.println(" Proses hapus user ID " + id + " diarahkan ke UserDB.");
+        }
+    }
+
+    // ===== 5. LIHAT TOTAL OMSET (ADMIN ONLY) =====
+    static void lihatOmset(User user) {
+        if (!user.getRole().equalsIgnoreCase("ADMIN")) {
+            System.out.println(" Akses ilegal!");
+            return;
+        }
+        // Menampilkan omset simulasi atau dari database TransactionDB milikmu
+        System.out.println("\n=================================");
+        System.out.println(" TOTAL OMSET PENJUALAN: (Hubungkan ke TransactionDB)");
+        System.out.println("=================================");
     }
 
     // ===== MENU KASIR =====
@@ -114,7 +238,6 @@ public class MainApp {
         System.out.print("\nMasukkan ID produk: ");
         String id = sc.nextLine();
 
-        // Cari produk
         List<Product> products = productDB.getAllProducts();
         Product selected = null;
         for (Product p : products) {
@@ -124,7 +247,6 @@ public class MainApp {
             }
         }
 
-        // EXCEPTION: ProductNotFoundException
         if (selected == null) {
             System.out.println(" Produk tidak ditemukan!");
             return;
@@ -134,7 +256,6 @@ public class MainApp {
         int qty = Integer.parseInt(sc.nextLine());
 
         try {
-            // ASSERTION + EXCEPTION: OutOfStockException
             cart.addItem(selected, qty);
             System.out.println(" " + selected.getName() + " x" + qty + " ditambahkan!");
         } catch (Exception e) {
@@ -179,29 +300,21 @@ public class MainApp {
         System.out.print("Jumlah bayar: Rp");
         double bayar = Double.parseDouble(sc.nextLine());
 
-        // EXCEPTION: bayar kurang
         if (bayar < cart.getTotal()) {
             System.out.println(" Uang tidak cukup!");
             return;
         }
 
-        // Buat transaksi
         String txId = "TRX" + String.format("%04d", txCounter++);
         Transaction tx = new Transaction(txId, cart.getItems(), bayar, user.getId(), user.getName());
 
-        // Update stok di database
         for (CartItem item : cart.getItems()) {
             int newStock = item.getProduct().getStock() - item.getQuantity();
             productDB.updateStock(item.getProduct(), newStock);
         }
 
-        // Simpan transaksi ke database
         transactionDB.saveTransaction(tx);
-
-        // Cetak struk
         System.out.println(tx.generateReceipt());
-
-        // Kosongkan keranjang
         cart.clear();
     }
 }

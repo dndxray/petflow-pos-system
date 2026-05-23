@@ -48,6 +48,11 @@ public class ProductDB {
                 ));
             }
 
+            // Menutup resource database dengan baik
+            rs1.close();
+            rs2.close();
+            rs3.close();
+
         } 
         catch (Exception e) {
             e.printStackTrace();
@@ -60,8 +65,9 @@ public class ProductDB {
     public void updateStock(Product product, int newStock) {
         String table = "";
         if (product instanceof FoodProduct) table = "food_products";
+        // Menggunakan else if agar pengecekan instansiasi objek anak lebih presisi
         else if (product instanceof ToyProduct) table = "toy_products";
-        else table = "accessory_products";
+        else if (product instanceof AccessoryProduct) table = "accessory_products";
 
         try {
             Connection conn = DatabaseConnection.getConnection();
@@ -71,8 +77,58 @@ public class ProductDB {
             ps.setInt(1, newStock);
             ps.setString(2, product.getId());
             ps.executeUpdate();
+            ps.close();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    // ===== 1. FUNGSI TAMBAH PRODUK BARU (ADMIN) =====
+    public void addProduct(Product product) throws Exception {
+        String table = "";
+        if (product instanceof FoodProduct) table = "food_products";
+        else if (product instanceof ToyProduct) table = "toy_products";
+        else if (product instanceof AccessoryProduct) table = "accessory_products";
+
+        Connection conn = DatabaseConnection.getConnection();
+        String query = "INSERT INTO " + table + " (id, name, price, stock) VALUES (?, ?, ?, ?)";
+        
+        PreparedStatement ps = conn.prepareStatement(query);
+        ps.setString(1, product.getId());
+        ps.setString(2, product.getName());
+        ps.setDouble(3, product.getPrice()); // mengambil harga dasar produk
+        ps.setInt(4, product.getStock());
+        
+        ps.executeUpdate();
+        ps.close();
+    }
+
+    // ===== 2. FUNGSI HAPUS PRODUK (ADMIN) =====
+    public void deleteProduct(String id) throws Exception {
+        Connection conn = DatabaseConnection.getConnection();
+        boolean deleted = false;
+        
+        // Karena kita tidak tahu ID tersebut berada di tabel mana, 
+        // kita coba hapus di ketiga tabel satu per satu berdasarkan ID-nya.
+        String[] tables = {"food_products", "toy_products", "accessory_products"};
+        
+        for (String table : tables) {
+            String query = "DELETE FROM " + table + " WHERE id = ?";
+            PreparedStatement ps = conn.prepareStatement(query);
+            ps.setString(1, id);
+            
+            int rowsAffected = ps.executeUpdate();
+            ps.close();
+            
+            if (rowsAffected > 0) {
+                deleted = true;
+                break; // Jika sudah ketemu dan terhapus di salah satu tabel, keluar dari loop
+            }
+        }
+        
+        // Jika ID tidak ditemukan di ketiga tabel tersebut, lemparkan error
+        if (!deleted) {
+            throw new Exception("Produk dengan ID " + id + " tidak ditemukan di kategori manapun!");
         }
     }
 }
