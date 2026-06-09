@@ -193,17 +193,32 @@ static void hapusProdukAdmin(User user) {
         }
     }
 
-    // ===== 5. LIHAT TOTAL OMSET (ADMIN ONLY) =====
-    static void lihatOmset(User user) {
-        if (!user.getRole().equalsIgnoreCase("ADMIN")) {
-            System.out.println(" Akses ilegal!");
-            return;
-        }
-        // Menampilkan omset simulasi atau dari database TransactionDB milikmu
-        System.out.println("\n=================================");
-        System.out.println(" TOTAL OMSET PENJUALAN: (Hubungkan ke TransactionDB)");
-        System.out.println("=================================");
+static void lihatOmset(User user) {
+
+    if (!user.getRole().equalsIgnoreCase("ADMIN")) {
+        System.out.println("Akses ilegal!");
+        return;
     }
+
+    Thread reportThread = new Thread(() -> {
+
+        System.out.println("\n=================================");
+        System.out.println("GENERATING SALES REPORT...");
+        System.out.println("=================================");
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Laporan selesai dibuat!");
+    });
+
+    reportThread.start();
+
+    System.out.println("Laporan sedang diproses...");
+}
 
     // ===== MENU KASIR =====
     static void menuCashier(User user) {
