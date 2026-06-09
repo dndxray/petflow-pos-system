@@ -1,4 +1,9 @@
 import java.util.Scanner;
+
+import database.ProductDB;
+import database.TransactionDB;
+import database.UserDB;
+
 import java.util.List;
 import model.User;
 import model.Admin;
@@ -93,6 +98,24 @@ public class MainApp {
         double price = Double.parseDouble(sc.nextLine());
         System.out.print("Masukkan Stok: ");
         int stock = Integer.parseInt(sc.nextLine());
+
+
+        // InvalidInputException
+        try {
+            if (name.isEmpty()) {
+                throw new exception.InvalidInputException("Nama produk tidak boleh kosong!");
+            }
+            if (price <= 0) {
+                throw new exception.InvalidInputException("Harga harus lebih dari 0!");
+            }
+            if (stock < 0) {
+                throw new exception.InvalidInputException("Stok tidak boleh negatif!");
+            }
+        }               
+        catch (exception.InvalidInputException e) {
+            System.out.println("❌ Input tidak valid: " + e.getMessage());
+        return;
+        }
         
         System.out.println("Kategori: 1. Food | 2. Toy | 3. Accessory");
         System.out.print("Pilih Kategori (1-3): ");
@@ -108,23 +131,30 @@ public class MainApp {
                 return;
             }
         }
-
-        // Karena ProductDB punyamu belum menyediakan fungsi .addProduct(), 
-        // kamu bisa mengintegrasikannya nanti di kelas database kamu jika diperlukan.
-        System.out.println(" Fitur addProduct siap dihubungkan ke ProductDB!");
+        if(productDB.addProduct(newProduct)){
+            System.out.println("Produk berhasil ditambahkan!");
+        }else{
+            System.out.println("Produk gagal ditambahkan!");
+        }   
     }
 
-    // ===== 2. HAPUS PRODUK (ADMIN ONLY) =====
-    static void hapusProdukAdmin(User user) {
-        if (!user.getRole().equalsIgnoreCase("ADMIN")) {
-            System.out.println(" Akses ilegal!");
-            return;
-        }
-        lihatProduk();
-        System.out.print("\nMasukkan ID Produk yang ingin dihapus: ");
-        String id = sc.nextLine();
-        System.out.println(" ID " + id + " siap diproses hapus!");
+static void hapusProdukAdmin(User user) {
+    if (!user.getRole().equalsIgnoreCase("ADMIN")) {
+        System.out.println("Akses ilegal!");
+        return;
     }
+
+    lihatProduk();
+
+    System.out.print("\nMasukkan ID Produk yang ingin dihapus: ");
+    String id = sc.nextLine();
+
+    if (productDB.deleteProduct(id)) {
+        System.out.println("Produk berhasil dihapus!");
+    } else {
+        System.out.println("Produk tidak ditemukan!");
+    }
+}
 
     // ===== 4. KELOLA USER KASIR (ADMIN ONLY) =====
     static void kelolaUserKasir(User user) {

@@ -1,6 +1,8 @@
 package model;
 
-public abstract class Product {
+import interfaces.Discountable;
+
+public abstract class Product implements Discountable {
     private String id;
     private String name;
     private double price;
